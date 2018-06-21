@@ -47,11 +47,11 @@ func (c *DI) build(name string) (*reflect.Value, error) {
 
 	c.logger.Debug("empty build")
 	paramCount := service.builder.Type().NumIn()
-	params := make([]reflect.Value, 0, paramCount)
-	if paramCount > 0 {
-		params = append(params, service.config)
+	params := []reflect.Value{service.config}
+	if paramCount > 1 {
 		for i := 1; i < paramCount; i++ {
 			paramName, err := c.buildParamName(service.builder.Type().In(i), name, service.deps)
+			c.logger.Debug("param name:", paramName, ",for argument N:", i)
 			if err != nil {
 				return nil, err
 			}
@@ -72,20 +72,15 @@ func (c *DI) build(name string) (*reflect.Value, error) {
 }
 
 func (c *DI) buildParamName(in reflect.Type, skip string, deps map[reflect.Type]string) (string, error) {
-	c.logger.Debug("look for param name")
 	for name, service := range c.storage {
 		if name == skip {
 			continue
 		}
 		for i, n := range deps {
-			c.logger.Debug("deps check", n)
-			c.logger.Debug(in, i)
 			if in == i {
-				c.logger.Debug("return name deps", n)
 				return n, nil
 			}
 		}
-		c.logger.Debug("check", name)
 		if !service.out.Implements(in) {
 			continue
 		}

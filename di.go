@@ -74,7 +74,7 @@ func (c *DI) Add(name string, config interface{}, builder interface{}, deps map[
 	}
 	d := make(map[reflect.Type]string, len(deps))
 	for t, n := range deps {
-		tt := reflect.TypeOf(deps[t])
+		tt := reflect.TypeOf(t)
 		c.logger.Debug("type", tt)
 		if tt.Kind() == reflect.Ptr {
 			c.logger.Debug("elem", tt)
