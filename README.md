@@ -12,3 +12,19 @@ can't
 ```go
 buildSome(config Config, interfaceA, interfaceA) (some, error) {...}
 ```
+
+using
+
+```go
+container := di.New()
+err := container.Add("some", someconfig{}, NewSome)
+if err!= nil {
+	panic(err)
+}
+var s some
+err := container.Build("some", &s)
+if err!= nil {
+	panic(err)
+}
+s.Some()
+```
