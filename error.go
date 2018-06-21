@@ -7,7 +7,7 @@ func (e stringErr) Error() string {
 }
 
 const (
-	ErrWrongConfigType      = stringErr("wrong config type, should be struct")
+	ErrWrongConfigType      = stringErr("wrong config type, should be struct or nil")
 	ErrWrongBuilderType     = stringErr("wrong builder type, should be func")
 	ErrWrongBuilderReturn   = stringErr("wrong builder should return (<service>, error)")
 	ErrParamBuilderNotFound = stringErr("param builder not found")

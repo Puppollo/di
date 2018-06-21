@@ -7,10 +7,15 @@ can build
 buildSomeA(config ConfigA) (someA, error) {...}
 buildSomeB(config ConfigB, interfaceB) (someB, error) {...}
 buildSomeC(config ConfigC, interfaceA, interfaceB) (someC, error) {...}
+buildSomeD() (someD, error) {...}
+buildSomeE(interfaceA) (someE, error) {...}
+buildSomeF(interfaceA, configF) (someF, error) {...}
 ```
 can't
 ```go
 buildSome(config Config, interfaceA, interfaceA) (some, error) {...}
+buildSome(config Config, b structB, interfaceA) (some, error) {...}
+buildSome(<literal> C, b structB) (some, error) {...}
 ```
 
 using

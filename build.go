@@ -47,9 +47,14 @@ func (c *DI) build(name string) (*reflect.Value, error) {
 
 	c.logger.Debug("empty build")
 	paramCount := service.builder.Type().NumIn()
-	params := []reflect.Value{service.config}
-	if paramCount > 1 {
-		for i := 1; i < paramCount; i++ {
+	//params := []reflect.Value{service.config}
+	var params []reflect.Value
+	if paramCount > 0 {
+		for i := 0; i < paramCount; i++ {
+			if configParam(service.builder.Type().In(i), service.config) {
+				params = append(params, *service.config)
+				continue
+			}
 			paramName, err := c.buildParamName(service.builder.Type().In(i), name, service.deps)
 			c.logger.Debug("param name:", paramName, ",for argument N:", i)
 			if err != nil {
@@ -69,6 +74,16 @@ func (c *DI) build(name string) (*reflect.Value, error) {
 	}
 	service.build = value
 	return value, nil
+}
+
+func configParam(in reflect.Type, config *reflect.Value) bool {
+	if config == nil {
+		return false
+	}
+	if in == config.Type() {
+		return true
+	}
+	return false
 }
 
 func (c *DI) buildParamName(in reflect.Type, skip string, deps map[reflect.Type]string) (string, error) {

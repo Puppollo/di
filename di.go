@@ -11,7 +11,7 @@ type (
 	Deps map[interface{}]string
 
 	service struct {
-		config  reflect.Value           // service config
+		config  *reflect.Value          // service config
 		builder reflect.Value           // service builder func
 		deps    map[reflect.Type]string // dependencies
 		out     reflect.Type            // builder(...) (out, error)
@@ -55,10 +55,18 @@ func (c *DI) Build(name string, v interface{}) error {
 // deps - map that points to specific dependency implementation by name
 func (c *DI) Add(name string, config interface{}, builder interface{}, deps map[interface{}]string) error {
 	c.logger.Debug("add", name)
-	cfgValue := reflect.ValueOf(config)
-	if cfgValue.Kind() != reflect.Struct {
-		return ErrWrongConfigType
+	var cfgValue *reflect.Value
+	if config != nil {
+		cv := reflect.ValueOf(config)
+		if cv.Kind() == reflect.Ptr {
+			cv = cv.Elem()
+		}
+		if cv.Kind() != reflect.Struct {
+			return ErrWrongConfigType
+		}
+		cfgValue = &cv
 	}
+
 	bldValue := reflect.ValueOf(builder)
 	if bldValue.Kind() != reflect.Func {
 		return ErrWrongBuilderType

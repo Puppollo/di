@@ -18,6 +18,8 @@ type (
 		v     int
 		inter Inter
 	}
+
+	Some struct{ s int }
 )
 
 const (
@@ -28,9 +30,16 @@ const (
 func NewA(c config) (*A, error) { return &A{v: c.v}, nil }
 func (a *A) Int() int           { return a.v }
 
-func NewB(c config, i Inter) (*B, error) { return &B{v: c.v, inter: i}, nil }
-func (b *B) Int() int                    { return b.v }
-func (b *B) Sum() int                    { return b.v + b.inter.Int() }
+func NewB(c config, i Inter) (*B, error)    { return &B{v: c.v, inter: i}, nil }
+func NewBAlt(i Inter, c config) (*B, error) { return &B{v: c.v, inter: i}, nil }
+func NewBConfigless(i Inter) (*B, error)    { return &B{inter: i}, nil }
+func (b *B) Int() int                       { return b.v }
+
+func (b *B) Sum() int { return b.v + b.inter.Int() }
+
+func (s Some) Some() {
+	println("some", s.s)
+}
 
 func TestDI_AddBuild(t *testing.T) {
 	d := di.New()
@@ -48,7 +57,7 @@ func TestDI_AddBuild(t *testing.T) {
 		{
 			title: "nil builder",
 			name:  "1",
-			err:   di.ErrWrongConfigType,
+			err:   di.ErrWrongBuilderType,
 			check: func(name string) error { return nil },
 		},
 		{
@@ -196,6 +205,49 @@ func TestDI_AddBuild(t *testing.T) {
 				return nil
 			},
 		},
+		{
+			title:   "build b from b configless",
+			name:    "bb-configless",
+			builder: NewBConfigless,
+			deps:    di.Deps{new(Inter): "b"},
+			check: func(name string) error {
+				var b B
+				err := d.Build(name, &b)
+				if err != nil {
+					return err
+				}
+				if b.Int() != 0 {
+					return fmt.Errorf("on Int\n"+expectValueFmt, 0, b.Int())
+				}
+				if b.Sum() != 5 {
+					fmt.Printf("%#v\n", b)
+					return fmt.Errorf("on Sum\n"+expectValueFmt, 5, b.Sum())
+				}
+				return nil
+			},
+		},
+		{
+			title:   "build b from other b with alt builder",
+			name:    "bb",
+			config:  config{v: 70},
+			builder: NewBAlt,
+			deps:    di.Deps{new(Inter): "b"},
+			check: func(name string) error {
+				var b B
+				err := d.Build(name, &b)
+				if err != nil {
+					return err
+				}
+				if b.Int() != 70 {
+					return fmt.Errorf("on Int\n"+expectValueFmt, 70, b.Int())
+				}
+				if b.Sum() != 75 {
+					fmt.Printf("%#v\n", b)
+					return fmt.Errorf("on Sum\n"+expectValueFmt, 75, b.Sum())
+				}
+				return nil
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -215,4 +267,18 @@ func TestDI_AddBuild(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDI_Some(t *testing.T) {
+	container := di.New()
+	err := container.Add("some", nil, func() (Some, error) { return Some{203}, nil }, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var s Some
+	err = container.Build("some", &s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.Some()
 }
