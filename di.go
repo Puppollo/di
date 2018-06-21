@@ -25,12 +25,16 @@ type (
 	}
 )
 
-func New(l Logger) *DI {
+func New() *DI {
 	return &DI{
 		storage: make(map[string]*service),
 		mutex:   &sync.Mutex{},
-		logger:  l,
+		logger:  NullLogger(),
 	}
+}
+
+func (c *DI) SetLogger(l Logger) {
+	c.logger = l
 }
 
 func (c *DI) Build(name string, v interface{}) error {
@@ -45,7 +49,12 @@ func (c *DI) Build(name string, v interface{}) error {
 	})
 }
 
+// name - service name in container
+// config - should be a struct, service config values
+// builder - func that create an instance, should return (<service>, error)
+// deps - map that points to specific dependency implementation by name
 func (c *DI) Add(name string, config interface{}, builder interface{}, deps map[interface{}]string) error {
+	c.logger.Debug("add", name)
 	cfgValue := reflect.ValueOf(config)
 	if cfgValue.Kind() != reflect.Struct {
 		return ErrWrongConfigType
