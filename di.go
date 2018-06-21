@@ -51,7 +51,7 @@ func (c *DI) Build(name string, v interface{}) error {
 
 // name - service name in container
 // config - should be a struct, service config values
-// builder - func that create an instance, should return (<service>, error)
+// builder - func that create an instance `func(<config>, ...<dependencies>) (<service>, error)`
 // deps - map that points to specific dependency implementation by name
 func (c *DI) Add(name string, config interface{}, builder interface{}, deps map[interface{}]string) error {
 	c.logger.Debug("add", name)

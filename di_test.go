@@ -1,8 +1,9 @@
 package di_test
 
 import (
-	"fmt"
 	"github.com/Puppollo/di"
+
+	"fmt"
 	"testing"
 )
 
